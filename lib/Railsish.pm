@@ -1,5 +1,5 @@
 package Railsish;
-our $VERSION = '0.10';
+our $VERSION = '0.20';
 
 # ABSTRACT: A web application framework.
 
@@ -8,7 +8,6 @@ use warnings;
 
 use HTTP::Engine::Response;
 use UNIVERSAL::require;
-use Module::Refresh;
 
 my $app_package;
 
@@ -21,20 +20,7 @@ sub import {
     }
 }
 
-sub app_root {
-    $ENV{APP_ROOT}
-}
-
 sub handle_request {
-    {
-        require Module::Refresh;
-        Module::Refresh->refresh;
-    };
-
-    &dispatch;
-}
-
-sub dispatch {
     my $request = shift;
     my $response = HTTP::Engine::Response->new;
 
@@ -62,7 +48,7 @@ Railsish - A web application framework.
 
 =head1 VERSION
 
-version 0.10
+version 0.20
 
 =head1 DESCRIPTION
 

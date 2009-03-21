@@ -9,10 +9,12 @@ requires:
   Binding: 0.04
   Devel::Symdump: 0
   File::Spec::Functions: 0
-  HTTP::Engine: 0.1.3
+  HTTP::Engine: 0.1.4
   JSON: 0
   Module::Refresh: 0.13
+  Mouse: 0.19
+  Path::Router: 0.06
   Perl6::Junction: 1.4000
   Template: 2.20
   UNIVERSAL::require: 0
-version: 0.10
+version: 0.20

@@ -1,0 +1,6 @@
+---
+action: here
+controller: welcome
+params: {}
+request: /welcome/here
+

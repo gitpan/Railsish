@@ -1,18 +1,28 @@
 package Railsish::Controller;
-our $VERSION = '0.10';
+our $VERSION = '0.20';
 
 # ABSTRACT: base class for webapp controllers.
 use strict;
 use warnings;
 
-my ($request, $response, $controller, $action, $format);
+use Railsish::CoreHelpers;
+use Railsish::ViewHelpers ();
+use Railsish::ControllerHelpers ();
+use Encode;
+use YAML qw(Dump);
+
+our ($request, $response, $controller, $action, $format, $params);
 
 sub request() { $request }
 sub response() { $response }
 sub controller() { $controller }
 sub action() { $action }
 sub format() { $format }
-sub app_root { $ENV{APP_ROOT} }
+
+sub params {
+    my $name = shift;
+    return defined($name) ? $params->{$name} : $params;
+}
 
 sub import {
     my $class = shift;
@@ -26,17 +36,36 @@ sub import {
     *{"$caller\::controller"} = \&controller;
     *{"$caller\::action"}     = \&action;
     *{"$caller\::format"}     = \&format;
+    *{"$caller\::params"}     = \&params;
     *{"$caller\::render"}     = \&render;
+    *{"$caller\::render_json"} = \&render_json;
+
+    for (@Railsish::ControllerHelpers::EXPORT) {
+        *{"$caller\::$_"} = *{"Railsish::ControllerHelpers::$_"};
+    }
 }
 
 sub dispatch {
     (my $self, $request, $response) = @_;
 
-    my $path    = $request->request_uri;
-    ($format)   = $path =~ /\.(....?)$/;
+    my $path    = $request->path;
+
+    if ($path =~ s/\.(....?)$//) {
+        $format = $1
+    } else {
+        $format = "html";
+    }
+
     my @args    = split "/", $path; shift @args; # discard the first undef
     $controller = shift @args || 'welcome';
     $action     = shift @args || 'index';
+
+    logger->debug(Dump({
+	request => $path,
+	controller => $controller,
+	action => $action,
+	params => $request->parameters
+    }));
 
     if ($self->can($action)) {
         $self->$action(@args);
@@ -64,6 +93,11 @@ sub build_stash {
 
 sub render {
     my (%variables) = @_;
+    my $stash = build_stash;
+
+    for (keys %$stash) {
+	$variables{$_} = $stash->{$_};
+    }
 
     if (defined($format)) {
         my $renderer = __PACKAGE__->can("render_${format}");
@@ -75,14 +109,12 @@ sub render {
         $response->body("Unknown format: $format");
     }
 
-    my $stash = build_stash;
-
-    for (keys %$stash) {
-	$variables{$_} = $stash->{$_};
-    }
-
     $variables{controller} = \&controller;
     $variables{action}	   = \&action;
+
+    for (@Railsish::ViewHelpers::EXPORT) {
+	$variables{$_} = \&{"Railsish::ViewHelpers::$_"};
+    }
 
     $variables{title}    ||= ucfirst($controller) . " :: " .ucfirst($action);
     $variables{layout}   ||= "layouts/application.html.tt2";
@@ -97,18 +129,22 @@ sub render {
     my $output = "";
     $tt->process($variables{template}, \%variables, \$output)
 	|| die $tt->error();
-    $response->body($output);
+
+    $response->body(Encode::encode_utf8($output));
 }
 
 
-use JSON;
+use JSON -convert_blessed_universally;
 sub render_json {
     my %variables = @_;
 
-    my $out = to_json(\%variables);
+    my $json = JSON->new;
+    $json->allow_blessed(1);
+
+    my $out = $json->encode(\%variables);
 
     $response->headers->header('Content-Type' => 'text/x-json');
-    $response->body($out);
+    $response->body( Encode::encode_utf8($out) );
 }
 
 # Provide a default 'index'
@@ -126,7 +162,7 @@ Railsish::Controller - base class for webapp controllers.
 
 =head1 VERSION
 
-version 0.10
+version 0.20
 
 =head1 AUTHOR
 
