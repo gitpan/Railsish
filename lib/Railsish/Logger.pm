@@ -1,10 +1,11 @@
 package Railsish::Logger;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
-use Mouse;
+use Any::Moose;
 use Railsish::CoreHelpers ();
 use Log::Dispatch;
 use Log::Dispatch::File;
+use Log::Dispatch::Screen;
 
 has 'logger' => (
     is => "rw",
@@ -16,11 +17,23 @@ sub _build_logger {
     my ($self) = @_;
 
     my $logger = Log::Dispatch->new;
+    return $logger unless exists $ENV{APP_ROOT};
+
+    my $logdir = Railsish::CoreHelpers::app_root("log");
+    if (-d $logdir) {
+        my $file = Railsish::CoreHelpers::app_root(log => "development.log");
+        $logger->add(
+            Log::Dispatch::File->new(
+                name => "development",
+                min_level => "debug",
+                filename => $file));
+    }
+
     $logger->add(
-	Log::Dispatch::File->new(
-	    name => "development",
+	Log::Dispatch::Screen->new(
+	    name => "screen",
 	    min_level => "debug",
-	    filename => Railsish::CoreHelpers::app_root(log => "development.log")));
+            stderr => 1));
 
     return $logger;
 }
@@ -42,7 +55,7 @@ Railsish::Logger
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

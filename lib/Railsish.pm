@@ -1,5 +1,5 @@
 package Railsish;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 # ABSTRACT: A web application framework.
 
@@ -20,23 +20,6 @@ sub import {
     }
 }
 
-sub handle_request {
-    my $request = shift;
-    my $response = HTTP::Engine::Response->new;
-
-    my $path = $request->request_uri;
-
-    my ($controller) = $path =~ m{^/(\w+)}s;
-    $controller ||= 'welcome';
-
-    my $controller_class = $app_package . "::" . ucfirst($controller) . "Controller";
-    $controller_class->require or die $@;
-
-    $controller_class->dispatch($request, $response);
-
-    return $response;
-}
-
 1;
 
 
@@ -48,7 +31,7 @@ Railsish - A web application framework.
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 DESCRIPTION
 

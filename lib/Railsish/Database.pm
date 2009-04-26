@@ -1,9 +1,10 @@
 package Railsish::Database;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 # ABSTRACT: Talks to database
 
-use Mouse;
+# use Any::Moose;
+use Moose;
 use KiokuDB;
 use Railsish::CoreHelpers;
 use YAML::Any qw(LoadFile);
@@ -34,7 +35,8 @@ sub _build_config {
 	unless -f $file;
 
     my $all_config = LoadFile($file);
-    return $all_config->{development};
+    my $mode = railsish_mode;
+    return $all_config->{$mode};
 }
 
 sub _build_dsn {
@@ -47,20 +49,32 @@ sub _build_kioku {
     my $self = shift;
     my $config = $self->config;
 
-    return KiokuDB->connect(
+    my $dir = KiokuDB->connect(
 	$self->dsn,
 	create => 1,
 	user => $config->{user},
 	password => $config->{password}
     );
+
+    # To avoid SQL-01004 error on MSSQL (String right truncation)
+    if ($self->dsn =~ /SQL Server/) {
+        $dir->backend->storage->dbh->{LongReadLen} = 512 * 1024
+    }
+
+    return $dir;
 }
 
 sub search {
-    my ($self, @args) = @_;
+    my ($self, %args) = @_;
     my $kioku = $self->kioku;
     my $kioku_scope = $kioku->new_scope;
 
-    $kioku->search({ (@args) });
+    if (ref($kioku->backend) eq "KiokuDB::Backend::Hash") {
+	# With CLASS, it'll never find anything.
+	# Hash backend should only be used when testing, so this should be enough for now.
+	delete $args{CLASS};
+    }
+    return $kioku->search(\%args);
 }
 
 sub lookup {
@@ -75,6 +89,7 @@ sub store {
     my ($self, $obj) = @_;
     my $kioku = $self->kioku;
     my $kioku_scope = $kioku->new_scope;
+
     $kioku->store($obj);
 }
 
@@ -101,7 +116,7 @@ Railsish::Database - Talks to database
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

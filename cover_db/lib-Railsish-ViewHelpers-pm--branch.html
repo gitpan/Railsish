@@ -20,7 +20,7 @@ http://www.pjcj.net
 <h1>Branch Coverage</h1>
 <table>
 <tr><td class="h" align="right">File:</td><td align="left">lib/Railsish/ViewHelpers.pm</td></tr>
-<tr><td class="h" align="right">Coverage:</td><td align="left" class="c0">43.8%</td></tr>
+<tr><td class="h" align="right">Coverage:</td><td align="left" class="c0">42.9%</td></tr>
 </table>
 <div><br/></div>
 <table>
@@ -29,10 +29,16 @@ http://www.pjcj.net
 <tr><td class="h"><a id="L23">23</a></td><td class="c0">0</td><td class="c0">T</td><td class="c0">F</td><td class="s">unless -f $file</td></tr>
 <tr><td class="h"><a id="L29">29</a></td><td class="c0">0</td><td class="c0">T</td><td class="c0">F</td><td class="s">if ($uri)</td></tr>
 <tr><td class="h"><a id="L41">41</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if ($source =~ m[^\w+://]) { }</td></tr>
-<tr><td class="h"><a id="L46">46</a></td><td class="c0">0</td><td class="c0">T</td><td class="c0">F</td><td class="s">if not $source =~ /\./</td></tr>
+<tr><td class="h"><a id="L46">46</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if not $source =~ /\./</td></tr>
 <tr><td class="h"><a id="L47">47</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if not $source =~ m[/]</td></tr>
-<tr><td class="h"><a id="L58">58</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if (%attr)</td></tr>
-<tr><td class="h"><a id="L68">68</a></td><td class="c0">50</td><td class="c3">T</td><td class="c0">F</td><td class="s">if (@Railsish::ControllerHelpers::notice_stickies &gt; 0)</td></tr>
+<tr><td class="h"><a id="L60">60</a></td><td class="c0">50</td><td class="c0">T</td><td class="c3">F</td><td class="s">if (@attr == 1 and ref $attr[0] eq &#39;HASH&#39;) { }</td></tr>
+<tr><td class="h"></td><td class="c0">50</td><td class="c3">T</td><td class="c0">F</td><td class="s">elsif (@attr % 2 == 0) { }</td></tr>
+<tr><td class="h"><a id="L67">67</a></td><td class="c0">50</td><td class="c3">T</td><td class="c0">F</td><td class="s">if (%attr)</td></tr>
+<tr><td class="h"><a id="L69">69</a></td><td class="c0">50</td><td class="c0">T</td><td class="c3">F</td><td class="s">if ($attr{&#39;method&#39;} and $attr{&#39;method&#39;} eq &#39;delete&#39;)</td></tr>
+<tr><td class="h"><a id="L80">80</a></td><td class="c0">50</td><td class="c0">T</td><td class="c3">F</td><td class="s">if (my $confirm = delete $attr{&#39;confirm&#39;}) { }</td></tr>
+<tr><td class="h"></td><td class="c0">50</td><td class="c0">T</td><td class="c3">F</td><td class="s">elsif ($js) { }</td></tr>
+<tr><td class="h"><a id="L97">97</a></td><td class="c0">0</td><td class="c0">T</td><td class="c0">F</td><td class="s">unless $$session{&#39;notice_stickies&#39;}</td></tr>
+<tr><td class="h"></td><td class="c0">0</td><td class="c0">T</td><td class="c0">F</td><td class="s">unless @{[] unless $$session{&#39;notice_stickies&#39;};} &gt; 0</td></tr>
 </table>
 </body>
 </html>

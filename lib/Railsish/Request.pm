@@ -1,7 +1,7 @@
 package Railsish::Request;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
-use Mouse;
+use Any::Moose;
 
 extends 'HTTP::Engine::Request';
 
@@ -14,7 +14,7 @@ Railsish::Request
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

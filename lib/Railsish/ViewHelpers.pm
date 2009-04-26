@@ -1,5 +1,5 @@
 package Railsish::ViewHelpers;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 use strict;
 use warnings;
@@ -19,13 +19,9 @@ sub stylesheet_link_tag {
 	    $uri = $css;
 	}
 	else {
-	    my $dir = app_root("/public/stylesheets");
-
-	    my $file = "${dir}/${css}.css";
-	    $file = "${dir}/${css}" unless -f $file;
-	    $file .= "?" . (stat($file))[9];
-	    $uri = $file;
-	    $uri =~ s/^$dir/\/stylesheets/;
+            $uri = $css;
+            $uri .= ".css" if $css !~ /\./;
+            $uri = "/stylesheets/$uri" if $css !~ /^\//;
 	}
 
 	if ($uri) {
@@ -55,27 +51,55 @@ sub javascript_include_tag {
 }
 
 sub link_to {
-    my ($label, $url, %attr) = @_;
+    my ($label, $url, @attr) = @_;
+
     my $attr = "";
+    my %attr = ();
+    if (@attr == 1 && ref($attr[0]) eq 'HASH') {
+        %attr = %{$attr[0]};
+    }
+    elsif (@attr % 2 == 0) {
+        %attr = (@attr);
+    }
+
     if (%attr) {
-	$attr = qq{ $_="@{[ encode_entities($attr{$_}, '<>&"') ]}"} for keys %attr;
+        my $js;
+        if ($attr{method} && $attr{method} eq 'delete') {
+            $js = <<JS;
+var f = document.createElement('form');
+f.style.display = 'none'; this.parentNode.appendChild(f);
+f.method = 'POST'; f.action = this.href;
+var m = document.createElement('input');
+m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method');
+m.setAttribute('value', 'delete'); f.appendChild(m);f.submit();
+JS
+        }
+
+        if (my $confirm = delete $attr{confirm}) {
+            $js ||= "return true;";
+            $attr{onclick} ||= "";
+            $attr{onclick} .= ";if(confirm(\"$confirm\")) { $js }; return false;";
+        } elsif ($js) {
+            $attr{onclick} ||= "";
+            $attr{onclick} .= "$js";
+        }
+
+	$attr .= qq{ $_="@{[ encode_entities($attr{$_}, '<>&"') ]}"} for keys %attr;
     }
     qq{<a href="$url"$attr>@{[ encode_entities($label, '<>&') ]}</a>};
 }
 
-use Railsish::ControllerHelpers ();
-
 sub render_stickies {
-    my $out = "";
-    if (@Railsish::ControllerHelpers::notice_stickies > 0) {
-        $out = '<div id="notice_stickies" class="message notice">';
-        for (@Railsish::ControllerHelpers::notice_stickies) {
-            $out .= "<p>" . $_->{text} . "</p>";
-        }
-        $out .= "</div>";
-    }
+    my $session = &Railsish::Controller::session;
 
-    @Railsish::ControllerHelpers::notice_stickies = ();
+    return "" unless @{$session->{notice_stickies}||[]} > 0;
+
+    my $out = '<div id="notice_stickies" class="message notice">';
+    while(my $stickie = pop @{$session->{notice_stickies}}) {
+        $out .= "<p>" . $stickie->{text} . "</p>";
+    }
+    $out .= "</div>";
+
     return $out;
 }
 
@@ -88,7 +112,7 @@ Railsish::ViewHelpers
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

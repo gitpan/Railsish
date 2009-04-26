@@ -1,5 +1,5 @@
 package Railsish::Helpers;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 # ABSTRACT: the base class of helper classes
 
@@ -28,7 +28,7 @@ Railsish::Helpers - the base class of helper classes
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 SYNOPSIS
 

@@ -1,5 +1,5 @@
 package Railsish::CoreHelpers;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 # ABSTRACT: Things that you'll need in about everywhere.
 
@@ -7,12 +7,16 @@ use strict;
 use warnings;
 
 use Exporter::Lite;
-our @EXPORT = qw(app_root logger);
+our @EXPORT = qw(railsish_mode app_root logger);
 
 use Log::Dispatch;
 use Log::Dispatch::File;
 
 use File::Spec::Functions;
+
+sub railsish_mode {
+    $ENV{RAILSISH_MODE} || "development"
+}
 
 sub app_root {
     catfile($ENV{APP_ROOT}, @_)
@@ -37,7 +41,7 @@ Railsish::CoreHelpers - Things that you'll need in about everywhere.
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

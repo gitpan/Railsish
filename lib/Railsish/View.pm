@@ -1,7 +1,7 @@
 package Railsish::View;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
-use Mouse;
+use Any::Moose;
 
 has template_root => (
     is => "ro",
@@ -51,7 +51,7 @@ sub resolve_template {
     my ($self, $thingy) = @_;
 
     my $dir = $self->template_root;
-    my $p = $self->template_root . "/" . $thingy . ".*.*";
+    my $p = quotemeta($self->template_root) . "/${thingy}.*.*";
 
     # XXX: TODO: Decide the precedence of multiple matches.
     my @files = glob($p);
@@ -74,7 +74,7 @@ Railsish::View
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 SYNOPSIS
 

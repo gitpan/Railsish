@@ -1,5 +1,5 @@
 package Railsish::ControllerHelpers;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 use strict;
 use warnings;
@@ -7,12 +7,10 @@ use warnings;
 use Exporter::Lite;
 our @EXPORT = qw(notice_stickie);
 
-our @notice_stickies = ();
-
 sub notice_stickie {
     my ($text) = @_;
-
-    push @notice_stickies, { text => $text };
+    my $session = $Railsish::Controller::session;
+    push @{$session->{notice_stickies}}, { text => $text };
 }
 
 1;
@@ -24,7 +22,7 @@ Railsish::ControllerHelpers
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

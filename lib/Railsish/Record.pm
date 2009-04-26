@@ -1,7 +1,7 @@
 package Railsish::Record;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
-use Mouse;
+use Any::Moose;
 use DateTime;
 
 use Railsish::Database;
@@ -15,8 +15,8 @@ has created_at => (
 {
     my $db;
     sub db {
-	return $db if defined $db;
-	$db = Railsish::Database->new;
+        return $db if defined $db;
+        $db = Railsish::Database->new;
     }
 }
 
@@ -40,12 +40,13 @@ sub save {
     db->store($self);
 }
 
-sub delete {
+sub destroy {
     my ($self) = @_;
     db->delete($self);
 }
 
 __PACKAGE__->meta->make_immutable;
+
 
 __END__
 =head1 NAME
@@ -54,7 +55,7 @@ Railsish::Record
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

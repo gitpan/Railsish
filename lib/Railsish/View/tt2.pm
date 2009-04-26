@@ -1,8 +1,8 @@
 package Railsish::View::tt2;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 
-use Mouse;
+use Any::Moose;
 extends 'Railsish::View';
 
 use Template;
@@ -44,7 +44,7 @@ Railsish::View::tt2
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

@@ -1,5 +1,5 @@
 package Railsish::Controller;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 # ABSTRACT: base class for webapp controllers.
 use strict;
@@ -11,13 +11,14 @@ use Railsish::ControllerHelpers ();
 use Encode;
 use YAML qw(Dump);
 
-our ($request, $response, $controller, $action, $format, $params);
+our ($request, $response, $controller, $action, $format, $params, $session);
 
 sub request() { $request }
 sub response() { $response }
 sub controller() { $controller }
 sub action() { $action }
 sub format() { $format }
+sub session() { $session }
 
 sub params {
     my $name = shift;
@@ -31,53 +32,21 @@ sub import {
 
     push @{"$caller\::ISA"}, $class;
 
-    *{"$caller\::request"}    = \&request;
-    *{"$caller\::response"}   = \&response;
-    *{"$caller\::controller"} = \&controller;
-    *{"$caller\::action"}     = \&action;
-    *{"$caller\::format"}     = \&format;
-    *{"$caller\::params"}     = \&params;
-    *{"$caller\::render"}     = \&render;
-    *{"$caller\::render_json"} = \&render_json;
+    for(qw(request response controller action format params
+           session render render_json render_xml redirect_to)) {
+        *{"$caller\::$_"} = *{"$_"};
+    }
 
     for (@Railsish::ControllerHelpers::EXPORT) {
         *{"$caller\::$_"} = *{"Railsish::ControllerHelpers::$_"};
     }
 }
 
-sub dispatch {
-    (my $self, $request, $response) = @_;
-
-    my $path    = $request->path;
-
-    if ($path =~ s/\.(....?)$//) {
-        $format = $1
-    } else {
-        $format = "html";
-    }
-
-    my @args    = split "/", $path; shift @args; # discard the first undef
-    $controller = shift @args || 'welcome';
-    $action     = shift @args || 'index';
-
-    logger->debug(Dump({
-	request => $path,
-	controller => $controller,
-	action => $action,
-	params => $request->parameters
-    }));
-
-    if ($self->can($action)) {
-        $self->$action(@args);
-    }
-
-    return $response;
-}
-
 use Template;
 use File::Spec::Functions;
 use Binding 0.04;
 use Perl6::Junction qw(any);
+use Railsish::PathHelpers ();
 
 sub build_stash {
     my $caller_vars = Binding->of_caller(2)->our_vars;
@@ -99,7 +68,7 @@ sub render {
 	$variables{$_} = $stash->{$_};
     }
 
-    if (defined($format)) {
+    if (defined($format) && $format ne "html") {
         my $renderer = __PACKAGE__->can("render_${format}");
         if ($renderer) {
             $renderer->(%variables);
@@ -107,6 +76,7 @@ sub render {
         }
         $response->status(500);
         $response->body("Unknown format: $format");
+        return;
     }
 
     $variables{controller} = \&controller;
@@ -114,6 +84,11 @@ sub render {
 
     for (@Railsish::ViewHelpers::EXPORT) {
 	$variables{$_} = \&{"Railsish::ViewHelpers::$_"};
+    }
+
+    my $path_helpers = Railsish::PathHelpers->as_hash;
+    for (keys %$path_helpers) {
+	$variables{$_} = $path_helpers->{$_}
     }
 
     $variables{title}    ||= ucfirst($controller) . " :: " .ucfirst($action);
@@ -147,11 +122,47 @@ sub render_json {
     $response->body( Encode::encode_utf8($out) );
 }
 
+use XML::Simple;
+sub render_xml {
+    # still not write testing
+
+    my %variables = @_;
+
+    my $out = XMLout(\%variables);
+
+    $response->header->header("Content-Type" => "text/xml");
+    $response->body( Encode::encode_utf8($out) );
+}
+
+use Railsish::TextHelpers;
+
+sub redirect_to {
+    my @args = @_;
+    my $url;
+    my $current_controller = caller;
+
+    $current_controller = underscore($current_controller);
+    $current_controller =~ s/_controller$//;
+
+    if (@args == 1) {
+        $url = $args[0];
+    }
+    elsif (@args % 2 == 0) {
+        my %args = (@args);
+        $args{controller} ||= $current_controller;
+        $url = Railsish::Router->uri_for(%args);
+    }
+    else {
+        die("Unknown redirect_to parameters: @args");
+    }
+    $response->status(302);
+    $response->header(Location => $url);
+}
+
 # Provide a default 'index'
 sub index {
     render;
 }
-
 
 1;
 
@@ -162,7 +173,7 @@ Railsish::Controller - base class for webapp controllers.
 
 =head1 VERSION
 
-version 0.20
+version 0.21
 
 =head1 AUTHOR
 

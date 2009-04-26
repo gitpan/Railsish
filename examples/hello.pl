@@ -3,7 +3,7 @@
 use strict;
 
 package HelloController;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 use Railsish::Controller;
 
@@ -19,7 +19,7 @@ sub index {
 }
 
 package main;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 
 use Railsish::Router;
